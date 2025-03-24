@@ -1,0 +1,112 @@
+oauth2-uri: ${OAUTH2_URL}
+oauth2-client-redirect-uri: ${OAUTH2_CLIENT_REDIRECT_URL}
+oauth2-client-id: ${OAUTH2_CLIENT_ID}
+oauth2-client-secret: ${OAUTH2_CLIENT_SCRT}	
+ui-uri: ${REACT_URL}
+server-port : ${SERVER_PORT}
+
+#resource-uri: http://172.20.0.6:8080/realms/keycloak/protocol/openid-connect/token
+#client-id: keycloak-confidentail
+#client-secret: d9J20fzCDzo5hzuejfZwPAKJj5hsLoTg	
+#ui-uri: http://172.20.0.5:80
+#server-port : 8090
+
+server:
+#    address: 172.20.0.8
+    port: ${server-port}
+    servlet :
+       context-path : /v1
+spring:
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+       default-filters:
+         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
+       globalcors:
+         corsConfigurations:
+           '[/**]':
+              allowedOrigins: 
+                - ${ui-uri}
+              allowedHeaders: "*"
+              allowedMethods:
+               - GET
+               - POST
+               - OPTIONS  
+       routes:
+           - id: home
+             predicates:
+             - Path=/bff
+             uri: ${ui-uri}
+#             filters:
+#             - RedirectTo=301,${gateway-uri}/ui/
+           - id : auth-server
+             predicates:
+               - Path=/bff/login
+             uri: ${ui-uri}/bff/login
+
+
+#management:
+#  endpoints:
+#    web:
+#     exposure:
+#       include: health, info
+#     endpoint:
+#       health:
+#        show-details: always 
+#     base-path: /actuator
+logging:
+  level:
+    org.springframework.web.HttpLogging: TRACE
+    reactor.netty.http.server: DEBUG
+    reactor.netty.http.client: DEBUG
+    org.springframework.boot.autoconfigure.web : DEBUG
+    org.springframework.web.reactive : DEBUG
+    org.springframework.cloud.gateway : DEBUG
+##gateway-uri: ${API_GATEWAY_URL}
+##api-bff-uri: ${BFF_URL}
+##ui-uri: ${UI_URL}
+##server-port : ${SERVER_PORT}
+#
+#gateway-uri: http://localhost:8090
+#api-bff-uri: http://localhost:7084
+#ui-uri: http://localhost:80
+#server-port : 8090
+#
+#server:
+#    port: ${server-port}
+#    servlet :
+#       context-path : /v1
+#spring:
+#  cloud:
+#    gateway:
+#      default-filters:
+#      - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+#      - SaveSession
+#      routes:
+#      # set a redirection from / to the UI
+#      - id: home
+#        uri: ${gateway-uri}
+#        predicates:
+#        - Path=/
+#        filters:
+#        - RedirectTo=301,${gateway-uri}/ui/
+#      # BFF access to greetings API (with TokenRelay replacing session cookies with access tokens)
+#      # To be used by SPAs (Angular app in our case)
+#      - id: api-bff
+#        uri: ${api-bff-uri}
+#        predicates:
+#        - Path=/bff/v1/**
+#        filters:
+#        - TokenRelay=
+#        - StripPrefix=2
+#      - id: ui
+#        uri: ${ui-uri}
+#        predicates:
+#        - Path=/ui/**
+#
+#logging:
+#   level:
+#    org.springframework.web: DEBUG
+#    org.springframework.context.annotation: TRACE
+#    org.springframework.controllers: DEBUG
